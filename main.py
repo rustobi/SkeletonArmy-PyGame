@@ -316,7 +316,7 @@ def main():
                     world_offset[0] = 0
                     anzahl_enemys_counter = 10
                     kills_enemys = 0
-                    objects_ingame[1] = {"boden": lava_end}
+                    objects_ingame = [{"boden": lava_end}, {"boden": (pygame.Rect(0, height - lava_height, width, lava_height))}]
                     character = main_character("Franz", WIN, objects_ingame, clock, speed=3,
                                                rand_links=rand_links, rand_rechts=rand_rechts)
                     steuerung = controls(rand_links, rand_rechts, character, clock)
@@ -359,7 +359,7 @@ def main():
             if anzahl_enemys < 10:
                 spawn_enemys()
             # fenster wird gezeichnet
-            if character.health <= 0 and character.health_animation <= 0:
+            if character.health <= 0 and character.health_animations_bar_rect_time <= 0:
                 WIN.blit(spielverloren_lbl, text_gover_rect)
                 pygame.display.update()
                 pygame.time.wait(2000)
@@ -403,7 +403,6 @@ def main():
                 update_window(event.type)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F1:
-                    print("TEST")
                     if not f1_clicked_enemy_view:
                         f1_clicked_enemy_view = True
                     else:
