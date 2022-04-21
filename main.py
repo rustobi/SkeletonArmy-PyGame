@@ -60,9 +60,9 @@ def main():
     spiel_gestartet_mit_knopf_druck = False
 
     def world_move(x=0, y=0):
-        for key, value in objects_ingame[1].items():
+        for key, value in objects_ingame.items():
             value: enemy
-            if value == objects_ingame[1]["boden"]:
+            if value == objects_ingame["boden"]:
                 lava.x -= x
                 continue
             if not value == "DEAD":
@@ -87,8 +87,8 @@ def main():
                     WIN.blit(lava_end,
                              (lava.x + (lava_width * math.ceil(width / lava_width)) + (lava_width * i), lava.y))
 
-            for keys, values in objects_ingame[1].items():
-                if values == objects_ingame[1]["boden"]:
+            for keys, values in objects_ingame.items():
+                if values == objects_ingame["boden"]:
                     continue
                 try:
                     values.update_character(character)
@@ -197,24 +197,21 @@ def main():
 
     def spawn_enemys():
         global anzahl_enemys, anzahl_enemys_counter
-        create_enemy = [False,0]
+        create_enemy = [False, 0]
 
-        values_in_game = list(objects_ingame[1].values())
+        values_in_game = list(objects_ingame.values())
         if len(values_in_game) == 1:
             anzahl_enemys += 1
-            create_enemy = [True, 850 + width - 1080]
-        elif world_offset[0] > 0:
-            if len(values_in_game) < math.floor((world_offset[0] + 750) / 750) + 1:
+            create_enemy = [True, 750 + width - 1080]
+        if world_offset[0] > 0:
+            if len(values_in_game) < math.floor((world_offset[0] + 250) / 750) + 2:
                 anzahl_enemys += 1
-                create_enemy = [True, 1080 + width - 1080]
+                create_enemy = [True, width + width - 1080]
 
         if create_enemy[0]:
             enemys = enemy("Peter2", WIN, speed=random.randint(1, 2),
                            position=[create_enemy[1], height - 90 - boden])
-            objects_ingame[0]["enemy_" + str(anzahl_enemys)] = enemys.get_enemy_rect()
-            objects_ingame[1]["enemy_" + str(anzahl_enemys)] = enemys
-
-
+            objects_ingame[f"enemy_{str(anzahl_enemys)}"] = enemys
 
     # RÄNDER INITIALISIERUNG
     rand_links = pygame.Rect(0, 0, 100, height)
@@ -257,7 +254,7 @@ def main():
     pointsbar_image = pygame.image.load(os.path.join("Assets", "GAME", "POINTS", "headcount.png"))
     pointsbar = pygame.transform.scale(pointsbar_image, (50, 40))
 
-    objects_ingame = [{"boden": lava_end}, {"boden": (pygame.Rect(0, height - lava_height, width, lava_height))}]
+    objects_ingame = {"boden": (pygame.Rect(0, height - lava_height, width, lava_height))}
 
     clock = pygame.time.Clock()
 
@@ -279,8 +276,8 @@ def main():
         left, middle, right = pygame.mouse.get_pressed()
 
         def crash_detection():  # Crash Kontrolle Methode
-            for keys, values in objects_ingame[1].items():
-                if values == objects_ingame[1]["boden"]:
+            for keys, values in objects_ingame.items():
+                if values == objects_ingame["boden"]:
                     continue
                 try:
                     if character.get_attack_character_rect().colliderect(values.get_enemy_rect()):
@@ -322,7 +319,7 @@ def main():
                     world_offset[0] = 0
                     anzahl_enemys_counter = 5
                     kills_enemys = 0
-                    objects_ingame = [{"boden": lava_end}, {"boden": (pygame.Rect(0, height - lava_height, width, lava_height))}]
+                    objects_ingame = {"boden": (pygame.Rect(0, height - lava_height, width, lava_height))}
                     character = main_character("Franz", WIN, objects_ingame, clock, speed=3,
                                                rand_links=rand_links, rand_rechts=rand_rechts)
                     steuerung = controls(rand_links, rand_rechts, character, clock)
@@ -354,11 +351,11 @@ def main():
                         except Exception as e:
                             print(str(e))
 
-            for name, enemy_check in objects_ingame[1].items():
+            for name, enemy_check in objects_ingame.items():
                 if name == "boden":
                     continue
-                if not objects_ingame[1][name] == "DEAD" and objects_ingame[1][name].health == -500:
-                    objects_ingame[1][name] = "DEAD"
+                if not objects_ingame[name] == "DEAD" and objects_ingame[name].health == -500:
+                    objects_ingame[name] = "DEAD"
                     anzahl_enemys_counter -= 1
 
             # enemys werden gespawnt
@@ -384,7 +381,7 @@ def main():
             rand_links = pygame.Rect(0, 0, 100, height)
             rand_rechts = pygame.Rect(width - 100, 0, 100, height)
 
-            for key, value in objects_ingame[1].items():
+            for key, value in objects_ingame.items():
                 if key != "boden":
                     value.position.y = height - value.get_height() - boden
 
@@ -394,7 +391,7 @@ def main():
             steuerung.rand_links = rand_links
             steuerung.rand_rechts = rand_rechts
 
-            character.objects_ingame[1]["boden"] = pygame.Rect(0, height - lava_height, lava_width * 10, lava_height)
+            character.objects_ingame["boden"] = pygame.Rect(0, height - lava_height, lava_width * 10, lava_height)
 
             character.position.y = height - character.get_height() - boden
 

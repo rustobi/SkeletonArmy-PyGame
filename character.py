@@ -335,8 +335,8 @@ class main_character:
         self.velocity -= 1
 
         # If ground is reached, reset variables.
-        if self.get_position().colliderect(self.objects_ingame[1]["boden"]):
-            self.position.y = self.objects_ingame[1]["boden"].y - self.get_height() + 5
+        if self.get_position().colliderect(self.objects_ingame["boden"]):
+            self.position.y = self.objects_ingame["boden"].y - self.get_height() + 5
             self.set_is_jumping(False)
             self.velocity = self.velocity_max
             if self.get_animation()[1] == "r":
