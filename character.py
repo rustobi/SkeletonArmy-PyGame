@@ -113,10 +113,10 @@ class main_character:
 
         if self.abkling_animation_time > 5:
             self.abkling_bar_image = pygame.image.load(
-                os.path.join("Assets", "character_new", "item", "abklingbar", "abklingb.png"))
+                os.path.join("Assets", "GAME", "gui", "abklingbar", "abklingb.png"))
         else:
             self.abkling_bar_image = pygame.image.load(
-                os.path.join("Assets", "character_new", "item", "abklingbar", str(int(
+                os.path.join("Assets", "GAME", "gui", "abklingbar", str(int(
                     self.abkling_animation_time)) + ".png"))
 
         self.abkling_bar = pygame.transform.scale(self.abkling_bar_image,
