@@ -28,6 +28,8 @@ start_screen = True
 won_game = False
 game_over_screen = False
 button_clicked = False
+f1_clicked_enemy_view = False
+f2_clicked_character_view = False
 
 # INITIALISE PYGAME AND SET CAPTION
 WIN = pygame.display.set_mode((width, height), pygame.RESIZABLE)
@@ -53,7 +55,7 @@ pygame.mixer.music.play(loops=-1)
 
 
 def main():
-    global anzahl, kills_enemys, anzahl_enemys, anzahl_enemys_counter, start_screen, won_game, game_over_screen, button_clicked, width, height, lava
+    global anzahl, kills_enemys, anzahl_enemys, anzahl_enemys_counter, start_screen, won_game, game_over_screen, button_clicked, width, height, lava, f1_clicked_enemy_view, f2_clicked_character_view
 
     spiel_gestartet_mit_knopf_druck = False
 
@@ -90,7 +92,16 @@ def main():
                     continue
                 try:
                     values.update_character(character)
+                    if f1_clicked_enemy_view:
+                        pygame.draw.rect(WIN, (255, 0, 0), character.get_character_rect())
+                        pygame.draw.rect(WIN, (0, 255, 0), values.get_attack_enemy_rect())
+                        WIN.blit(enemy_view, (20, 120))
+                    if f2_clicked_character_view:
+                        pygame.draw.rect(WIN, (255, 0, 50), character.get_attack_character_rect())
+                        pygame.draw.rect(WIN, (0, 255, 50), values.get_enemy_rect())
+                        WIN.blit(character_view, (20, 150))
                     WIN.blit(values.get_enemy(), (values.get_position().x, values.get_position().y))
+
                 except Exception as e:
                     continue
 
@@ -232,6 +243,11 @@ def main():
     text_gover_rect = spielverloren_lbl.get_rect(center=(width / 2, height / 2))
     spielneustarten_rect = spielneustarten_lbl.get_rect(center=(width / 2, height / 2 + 70))
 
+    # Attack View Labels
+    font_view = pygame.font.SysFont('Comic Sans MS', 20)
+    character_view = font_view.render("Character view", False, color_white)
+    enemy_view = font_view.render("Enemy view", False, color_white)
+
     pointsbar_image = pygame.image.load(os.path.join("Assets", "GAME", "POINTS", "headcount.png"))
     pointsbar = pygame.transform.scale(pointsbar_image, (50, 40))
 
@@ -372,7 +388,7 @@ def main():
             steuerung.rand_links = rand_links
             steuerung.rand_rechts = rand_rechts
 
-            character.objects_ingame[1]["boden"] = pygame.Rect(0, height - lava_height, lava_width*10, lava_height)
+            character.objects_ingame[1]["boden"] = pygame.Rect(0, height - lava_height, lava_width * 10, lava_height)
 
             character.position.y = height - character.get_height() - boden
 
@@ -385,6 +401,18 @@ def main():
             if event.type == pygame.WINDOWRESTORED:
                 width, height = pygame.display.get_surface().get_size()
                 update_window(event.type)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_F1:
+                    print("TEST")
+                    if not f1_clicked_enemy_view:
+                        f1_clicked_enemy_view = True
+                    else:
+                        f1_clicked_enemy_view = False
+                if event.key == pygame.K_F2:
+                    if not f2_clicked_character_view:
+                        f2_clicked_character_view = True
+                    else:
+                        f2_clicked_character_view = False
 
         if not start_screen and not left and spiel_gestartet_mit_knopf_druck and not game_over_screen:
             spiel_gestartet_mit_knopf_druck = False
