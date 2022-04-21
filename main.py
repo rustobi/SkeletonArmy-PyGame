@@ -191,24 +191,30 @@ def main():
                 character.animation_times = 1
 
             if left:
-                if character.get_animation()[
-                    0] != "hit" and not character.get_is_jumping() and not character.get_walking_block():
-                    character.hit()
+                if character.get_animation()[0] != "hit":
+                    if not character.get_is_jumping() and not character.get_walking_block():
+                        character.hit()
 
     def spawn_enemys():
         global anzahl_enemys, anzahl_enemys_counter
-        try:
-            test = list(objects_ingame[1].values())[math.floor(world_offset[0] / 750) + 1]
-        except Exception as e:
-            multiple = 500
-            if round(world_offset[0] / 1000) == 0:
-                multiple -= 500
-            anzahl_enemys += 1
+        create_enemy = [False,0]
 
+        values_in_game = list(objects_ingame[1].values())
+        if len(values_in_game) == 1:
+            anzahl_enemys += 1
+            create_enemy = [True, 850 + width - 1080]
+        elif world_offset[0] > 0:
+            if len(values_in_game) < math.floor((world_offset[0] + 750) / 750) + 1:
+                anzahl_enemys += 1
+                create_enemy = [True, 1080 + width - 1080]
+
+        if create_enemy[0]:
             enemys = enemy("Peter2", WIN, speed=random.randint(1, 2),
-                           position=[750 + multiple + width - 1080, height - 90 - boden])
+                           position=[create_enemy[1], height - 90 - boden])
             objects_ingame[0]["enemy_" + str(anzahl_enemys)] = enemys.get_enemy_rect()
             objects_ingame[1]["enemy_" + str(anzahl_enemys)] = enemys
+
+
 
     # RÄNDER INITIALISIERUNG
     rand_links = pygame.Rect(0, 0, 100, height)

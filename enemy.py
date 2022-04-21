@@ -143,7 +143,7 @@ class enemy:
         self.get_position().x += y
 
     def move(self, character):
-        if self.attack_enemy_rect.colliderect(character.get_character_rect()):
+        if self.attack_enemy_rect.colliderect(character.get_position()):
             if self.get_animation()[0] == "walk":
                 self.set_animation(["idle", self.get_animation()[1]])
         else:
