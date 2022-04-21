@@ -31,7 +31,7 @@ class controls():
         rand_beruehrung = self.character_active.get_character_rect().colliderect(self.rand_rechts)
         if not rand_beruehrung:
             self.character_active.move_character("right")
-        if rand_beruehrung and not aktueller_offset >= 8000:
+        if rand_beruehrung and not aktueller_offset >= 4000:
             if not self.character_active.get_is_jumping() :
                 right_offset = (math.floor(self.character_active.move_velocity)) * fps // self.clock.get_fps() + 1
                 self.character_active.move_character("right")

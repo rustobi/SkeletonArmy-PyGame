@@ -20,7 +20,7 @@ anzahl = 0
 framerate = 0
 world_offset = [0, 0]
 anzahl_enemys = 0
-anzahl_enemys_counter = 10
+anzahl_enemys_counter = 5
 kills_enemys = 0
 
 # SCREENS
@@ -265,7 +265,7 @@ def main():
     run = True
 
     while run:
-        if kills_enemys == 10:
+        if kills_enemys == 5:
             WIN.blit(spielgewonnen_lbl, text_win_rect)
             pygame.display.update()
             pygame.time.wait(1000)
@@ -314,7 +314,7 @@ def main():
                     anzahl_enemys = 0
                     world_move(-world_offset[0], 0)
                     world_offset[0] = 0
-                    anzahl_enemys_counter = 10
+                    anzahl_enemys_counter = 5
                     kills_enemys = 0
                     objects_ingame = [{"boden": lava_end}, {"boden": (pygame.Rect(0, height - lava_height, width, lava_height))}]
                     character = main_character("Franz", WIN, objects_ingame, clock, speed=3,
@@ -356,7 +356,7 @@ def main():
                     anzahl_enemys_counter -= 1
 
             # enemys werden gespawnt
-            if anzahl_enemys < 10:
+            if anzahl_enemys < 5:
                 spawn_enemys()
             # fenster wird gezeichnet
             if character.health <= 0 and character.health_animations_bar_rect_time <= 0:
