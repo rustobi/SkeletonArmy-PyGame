@@ -335,14 +335,16 @@ class main_character:
         self.velocity -= 1
 
         # If ground is reached, reset variables.
-        if self.get_position().colliderect(self.objects_ingame["boden"]):
-            self.position.y = self.objects_ingame["boden"].y - self.get_height() + 5
-            self.set_is_jumping(False)
-            self.velocity = self.velocity_max
-            if self.get_animation()[1] == "r":
-                self.set_animation(["idle", "r"])
-            elif self.get_animation()[1] == "l":
-                self.set_animation(["idle", "l"])
+        for objekt_key, objekt_value in self.objects_ingame.items():
+            if objekt_key[:5] == "boden":
+                if self.get_position().colliderect(objekt_value):
+                    self.position.y = objekt_value.y - self.get_height() + 5
+                    self.set_is_jumping(False)
+                    self.velocity = self.velocity_max
+                    if self.get_animation()[1] == "r":
+                        self.set_animation(["idle", "r"])
+                    elif self.get_animation()[1] == "l":
+                        self.set_animation(["idle", "l"])
 
     def damage_got(self, damage_got):
         self.health -= damage_got
