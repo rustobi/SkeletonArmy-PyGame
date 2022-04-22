@@ -358,9 +358,7 @@ class main_character:
         # If ground is reached, reset variables.
         for objekt_key, objekt_value in self.objects_ingame.items():
             if objekt_key[:5] == "boden" and self.velocity < 0:
-                print(new_foot_rect.colliderect(objekt_value))
                 if new_foot_rect.colliderect(objekt_value):
-
                     self.position.y = objekt_value.y - self.get_height() + 5
                     self.set_is_jumping(False)
                     self.set_walking_block(False)
