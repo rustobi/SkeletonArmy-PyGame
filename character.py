@@ -208,6 +208,12 @@ class main_character:
                 self.jump()
                 print(e)
             self.jump_timer += 1
+        else:
+            for objekt_key, objekt_value in self.objects_ingame.items():
+                new_foot_rect = pygame.Rect(self.get_character_rect().x, self.get_character_rect().y + 85,
+                                            self.get_character_rect().width, 15)
+                if new_foot_rect.colliderect(objekt_value):
+                    self.position.y = objekt_value.y - self.get_height() + 5
         self.position = pygame.Rect(self.position.x, self.position.y, self.characters_width, self.characters_height)
         self.character_animation()
 

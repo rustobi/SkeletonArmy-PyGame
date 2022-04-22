@@ -22,6 +22,11 @@ world_offset = [0, 0]
 anzahl_enemys = 0
 anzahl_enemys_counter = 5
 kills_enemys = 0
+insel_movement = 0
+
+radien_insel = []
+insel_liste = []
+insel_movement_pace = []
 
 # SCREENS
 start_screen = True
@@ -55,7 +60,7 @@ pygame.mixer.music.play(loops=-1)
 
 
 def main():
-    global anzahl, kills_enemys, anzahl_enemys, anzahl_enemys_counter, start_screen, won_game, game_over_screen, button_clicked, width, height, lava, f1_clicked_enemy_view, f2_clicked_character_view
+    global anzahl, kills_enemys, anzahl_enemys, anzahl_enemys_counter, start_screen, won_game, game_over_screen, button_clicked, width, height, lava, f1_clicked_enemy_view, f2_clicked_character_view, insel_movement
 
     spiel_gestartet_mit_knopf_druck = False
 
@@ -69,16 +74,69 @@ def main():
             if not value == "DEAD":
                 value.move_char(-x, y)
 
-        schwebende_insel_rect.x -= x
-        schwebende_insel_rect2.x -= x
-        schwebende_insel_rect3.x -= x
+        for key,value in objects_ingame.items():
+            if key != "boden":
+                value.x -= x
 
         neuer_x_wert = background_liste[1][0] - (x * 0.1)
         background_liste[1] = (neuer_x_wert, y)
 
         character.move_character_regular(-x, y)
 
-    def draw_window(character, lava_end, lava, objects_ingame):
+    def circle_animation(insel, insel_nr):
+        # Erstellen einer Radius Liste für die Schwebenden Inseln
+        if not radien_insel:
+            for i in range(0, len(objects_ingame) - 1):
+                insel_liste.append([0,"r"])
+                radien_insel.append(random.randint(1, 3))
+
+        if insel_liste[int(insel_nr)][1] == "r" and insel_liste[int(insel_nr)][0] < radien_insel[int(insel_nr)]:
+            insel_liste[int(insel_nr)][0] += 0.1
+        if insel_liste[int(insel_nr)][1] == "l" and insel_liste[int(insel_nr)][0] > -radien_insel[int(insel_nr)]:
+            insel_liste[int(insel_nr)][0] -= 0.1
+        if insel_liste[int(insel_nr)][1] == "r" and insel_liste[int(insel_nr)][0] >= radien_insel[int(insel_nr)]:
+            insel_liste[int(insel_nr)][1] = "l"
+        if insel_liste[int(insel_nr)][1] == "l" and insel_liste[int(insel_nr)][0] <= -radien_insel[int(insel_nr)]:
+            insel_liste[int(insel_nr)][1] = "r"
+
+        if insel_liste[int(insel_nr)][1] == "r" and insel_liste[int(insel_nr)][0] >= 0:
+            movement = math.floor(insel_liste[int(insel_nr)][0])
+            if movement == 0:
+                movement = 1
+            insel.x += movement
+            insel.y += movement
+
+        elif insel_liste[int(insel_nr)][1] == "l" and insel_liste[int(insel_nr)][0] >= 0:
+            movement = math.floor(insel_liste[int(insel_nr)][0])
+            if movement == 0:
+                movement = 1
+            insel.x -= movement
+            insel.y += movement
+
+        elif insel_liste[int(insel_nr)][1] == "l" and insel_liste[int(insel_nr)][0] <= 0:
+            movement = math.ceil(insel_liste[int(insel_nr)][0])
+            if movement == 0:
+                movement = -1
+            insel.x += movement
+            insel.y += movement
+
+        elif insel_liste[int(insel_nr)][1] == "r" and insel_liste[int(insel_nr)][0] <= 0:
+            movement = math.ceil(insel_liste[int(insel_nr)][0])
+            if movement == 0:
+                movement = -1
+            insel.x -= movement
+            insel.y += movement
+
+        if int(insel_nr) == 1:
+            print(movement)
+
+    def draw_window():
+        global insel_movement
+
+        if not insel_movement_pace:
+            for i in range (0,len(objects_ingame) - 1):
+                insel_movement_pace.append(0)
+
         if not start_screen and not won_game and not game_over_screen:
             WIN.blit(background_liste[0], background_liste[1])
             WIN.blit(pointsbar, (20, 20))
@@ -108,6 +166,11 @@ def main():
                     for i in range(0, int(width // lava_width + 1)):
                         WIN.blit(objects_ingame_images[key], (lava.x + lava_width * i, lava.y))
                 else:
+                    if insel_movement_pace[int(key[6:])] >= 1:
+                        circle_animation(value, key[6:])
+                        insel_movement_pace[int(key[6:])] = 0
+                    else:
+                        insel_movement_pace[int(key[6:])] += 0.2
                     WIN.blit(objects_ingame_images[key], (value.x, value.y))
 
             character.update_character()
@@ -254,21 +317,25 @@ def main():
     pointsbar_image = pygame.image.load(os.path.join("Assets", "GAME", "POINTS", "headcount.png"))
     pointsbar = pygame.transform.scale(pointsbar_image, (50, 40))
 
+    # Objekte im Spiel Initialisieren
     schwebende_insel_image = pygame.image.load(os.path.join("Assets", "GAME", "ground2.png"))
     schwebende_insel = pygame.transform.scale(schwebende_insel_image, (80, 20))
     schwebende_insel_rect = pygame.Rect(width - 750, height - 100, 80, 20)
     schwebende_insel_rect2 = pygame.Rect(width - 500, height - 200, 80, 20)
     schwebende_insel_rect3 = pygame.Rect(width - 250, height - 300, 80, 20)
+    schwebende_insel_rect4 = pygame.Rect(width - 550, height - 400, 80, 20)
 
     objects_ingame_images = {"boden": lava_end,
                              "boden_0": schwebende_insel,
                              "boden_1": schwebende_insel,
-                             "boden_2": schwebende_insel}
+                             "boden_2": schwebende_insel,
+                             "boden_3": schwebende_insel}
 
     objects_ingame = {"boden": (pygame.Rect(0, height - lava_height, width, lava_height)),
                       "boden_0": schwebende_insel_rect,
                       "boden_1": schwebende_insel_rect2,
-                      "boden_2": schwebende_insel_rect3}
+                      "boden_2": schwebende_insel_rect3,
+                      "boden_3": schwebende_insel_rect4}
 
     enemy_objects = {}
 
@@ -438,7 +505,7 @@ def main():
             spiel_gestartet_mit_knopf_druck = False
             character.set_walking_block(False)
 
-        draw_window(character, lava_end, lava, objects_ingame)
+        draw_window()
 
     pygame.quit()
 
