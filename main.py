@@ -16,7 +16,7 @@ boden = lava_height - 5
 vel = 1
 character_status = "IDLE"
 is_jumping = False
-anzahl = 0
+anzahl = 1
 framerate = 0
 world_offset = [0, 0]
 anzahl_enemys = 0
@@ -83,14 +83,10 @@ def main():
             WIN.blit(background_liste[0], background_liste[1])
             WIN.blit(pointsbar, (20, 20))
 
-            for i in range(0, int(width // lava_width + 1)):
-                WIN.blit(lava_end, (lava.x + lava_width * i, lava.y))
-
             if world_offset[0] > 0:
                 menge = math.ceil(world_offset[0] / lava_width)
                 for i in range(0, menge):
-                    WIN.blit(lava_end,
-                             (lava.x + (lava_width * math.ceil(width / lava_width)) + (lava_width * i), lava.y))
+                    WIN.blit(lava_end, (lava.x + (lava_width * math.ceil(width / lava_width)) + (lava_width * i), lava.y))
 
             for keys, values in enemy_objects.items():
                 try:
@@ -107,10 +103,12 @@ def main():
                 except Exception as e:
                     continue
 
-            WIN.blit(schwebende_insel, (schwebende_insel_rect.x, schwebende_insel_rect.y))
-            WIN.blit(schwebende_insel, (schwebende_insel_rect2.x, schwebende_insel_rect2.y))
-            WIN.blit(schwebende_insel, (schwebende_insel_rect3.x, schwebende_insel_rect3.y))
-
+            for key, value in objects_ingame.items():
+                if key == "boden":
+                    for i in range(0, int(width // lava_width + 1)):
+                        WIN.blit(objects_ingame_images[key], (lava.x + lava_width * i, lava.y))
+                else:
+                    WIN.blit(objects_ingame_images[key], (value.x, value.y))
 
             character.update_character()
             WIN.blit(character.get_character(), (character.get_position().x, character.get_position().y))
@@ -262,7 +260,16 @@ def main():
     schwebende_insel_rect2 = pygame.Rect(width - 500, height - 200, 80, 20)
     schwebende_insel_rect3 = pygame.Rect(width - 250, height - 300, 80, 20)
 
-    objects_ingame = {"boden": (pygame.Rect(0, height - lava_height, width, lava_height)), "boden_0": schwebende_insel_rect, "boden_1":schwebende_insel_rect2, "boden_2":schwebende_insel_rect3}
+    objects_ingame_images = {"boden": lava_end,
+                             "boden_0": schwebende_insel,
+                             "boden_1": schwebende_insel,
+                             "boden_2": schwebende_insel}
+
+    objects_ingame = {"boden": (pygame.Rect(0, height - lava_height, width, lava_height)),
+                      "boden_0": schwebende_insel_rect,
+                      "boden_1": schwebende_insel_rect2,
+                      "boden_2": schwebende_insel_rect3}
+
     enemy_objects = {}
 
     clock = pygame.time.Clock()
@@ -277,13 +284,6 @@ def main():
     run = True
 
     while run:
-        if kills_enemys == 5:
-            WIN.blit(spielgewonnen_lbl, text_win_rect)
-            pygame.display.update()
-            pygame.time.wait(1000)
-            won_game = True
-        left, middle, right = pygame.mouse.get_pressed()
-
         def crash_detection():  # Crash Kontrolle Methode
             for keys, values in enemy_objects.items():
                 try:
@@ -293,8 +293,40 @@ def main():
                     continue
             yield [False, ""]
 
+        def update_window(event_type):
+            global rand_links, rand_rechts, lava_width, lava_height, lava
+            background_liste[0] = pygame.transform.scale(background_image, (width * 2, height))
+            lava_width = width / 10 + 5
+            lava = pygame.Rect(0, height - lava_height, lava_width, lava_height)
+
+            rand_links = pygame.Rect(0, 0, 100, height)
+            rand_rechts = pygame.Rect(width - 100, 0, 100, height)
+
+            for key, value in enemy_objects.items():
+                try:
+                    value.position.y = height - value.get_height() - boden
+                except Exception as e:
+                    print(e)
+
+            character.rand_links = rand_links
+            character.rand_rechts = rand_rechts
+
+            steuerung.rand_links = rand_links
+            steuerung.rand_rechts = rand_rechts
+
+            character.objects_ingame["boden"] = pygame.Rect(0, height - lava_height, lava_width * 10, lava_height)
+
+            character.position.y = height - character.get_height() - boden
+
         # FPS Settings
         clock.tick(fps)
+
+        if kills_enemys == 5:
+            WIN.blit(spielgewonnen_lbl, text_win_rect)
+            pygame.display.update()
+            pygame.time.wait(1000)
+            won_game = True
+        left, middle, right = pygame.mouse.get_pressed()
 
         if start_screen:
             if text_rect.collidepoint(pygame.mouse.get_pos()):
@@ -336,13 +368,12 @@ def main():
                 spielneustarten_lbl = font_newstart_screen.render("Neustarten", False, color_white)
         else:
             # LAVA ANIMATION
-            if anzahl < 121:
-                anzahl += 1
-                if anzahl % 40 == 0 and anzahl != 0:
-                    lava_image = pygame.image.load(os.path.join("Assets", "lava", str(int(anzahl / 40)) + ".png"))
-                    lava_end = pygame.transform.scale(lava_image, (lava_width, lava_height))
+            if anzahl <= 3:
+                anzahl += 0.03
+                lava_image = pygame.image.load(os.path.join("Assets", "lava", str(math.floor(anzahl)) + ".png"))
+                objects_ingame_images["boden"] = pygame.transform.scale(lava_image, (lava_width, lava_height))
             else:
-                anzahl = 0
+                anzahl = 1
 
             tastatur_druck(pygame.key.get_pressed(), left)
 
@@ -379,31 +410,6 @@ def main():
                 elif character.get_animation()[1] == "r":
                     character.set_animation(["idle", "r"])
 
-        def update_window(event_type):
-            global rand_links, rand_rechts, lava_width, lava_height, lava
-            background_liste[0] = pygame.transform.scale(background_image, (width * 2, height))
-            lava_width = width / 10 + 5
-            lava = pygame.Rect(0, height - lava_height, lava_width, lava_height)
-
-            rand_links = pygame.Rect(0, 0, 100, height)
-            rand_rechts = pygame.Rect(width - 100, 0, 100, height)
-
-            for key, value in enemy_objects.items():
-                try:
-                    value.position.y = height - value.get_height() - boden
-                except Exception as e:
-                    print(e)
-
-            character.rand_links = rand_links
-            character.rand_rechts = rand_rechts
-
-            steuerung.rand_links = rand_links
-            steuerung.rand_rechts = rand_rechts
-
-            character.objects_ingame["boden"] = pygame.Rect(0, height - lava_height, lava_width * 10, lava_height)
-
-            character.position.y = height - character.get_height() - boden
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -424,7 +430,7 @@ def main():
                         f2_clicked_character_view = True
                     else:
                         f2_clicked_character_view = False
-                if event.key == pygame.K_SPACE or event.key == pygame.K_w:
+                if (event.key == pygame.K_SPACE or event.key == pygame.K_w) and not character.get_walking_block():
                     if character.get_position().y <= (height - character.get_height() - boden):
                         steuerung.up(False)
 

@@ -3,8 +3,7 @@ import pygame
 import os
 
 width, height = 1080, 608
-lava_width, lava_height = width / 10 + 5, 20
-boden = lava_height - 5
+boden = 20 - 5
 pygame.mixer.init()
 FPS = 144
 
@@ -350,10 +349,11 @@ class main_character:
         self.character_rect.y -= F
 
         # Change velocity
-        if self.velocity > -10:
+        if self.velocity > -8:
             self.velocity -= 1
 
-        new_foot_rect = pygame.Rect(self.get_character_rect().x, self.get_character_rect().y + 90, self.get_character_rect().width, 10)
+        new_foot_rect = pygame.Rect(self.get_character_rect().x, self.get_character_rect().y + 85, self.get_character_rect().width, 15)
+
 
         # If ground is reached, reset variables.
         for objekt_key, objekt_value in self.objects_ingame.items():
