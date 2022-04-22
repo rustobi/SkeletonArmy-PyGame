@@ -61,12 +61,17 @@ def main():
 
     def world_move(x=0, y=0):
         for key, value in objects_ingame.items():
-            value: enemy
             if value == objects_ingame["boden"]:
                 lava.x -= x
                 continue
+
+        for key, value in enemy_objects.items():
             if not value == "DEAD":
                 value.move_char(-x, y)
+
+        schwebende_insel_rect.x -= x
+        schwebende_insel_rect2.x -= x
+        schwebende_insel_rect3.x -= x
 
         neuer_x_wert = background_liste[1][0] - (x * 0.1)
         background_liste[1] = (neuer_x_wert, y)
@@ -87,9 +92,7 @@ def main():
                     WIN.blit(lava_end,
                              (lava.x + (lava_width * math.ceil(width / lava_width)) + (lava_width * i), lava.y))
 
-            for keys, values in objects_ingame.items():
-                if values == objects_ingame["boden"]:
-                    continue
+            for keys, values in enemy_objects.items():
                 try:
                     values.update_character(character)
                     if f1_clicked_enemy_view:
@@ -101,9 +104,13 @@ def main():
                         pygame.draw.rect(WIN, (0, 255, 50), values.get_enemy_rect())
                         WIN.blit(character_view, (20, 150))
                     WIN.blit(values.get_enemy(), (values.get_position().x, values.get_position().y))
-
                 except Exception as e:
                     continue
+
+            WIN.blit(schwebende_insel, (schwebende_insel_rect.x, schwebende_insel_rect.y))
+            WIN.blit(schwebende_insel, (schwebende_insel_rect2.x, schwebende_insel_rect2.y))
+            WIN.blit(schwebende_insel, (schwebende_insel_rect3.x, schwebende_insel_rect3.y))
+
 
             character.update_character()
             WIN.blit(character.get_character(), (character.get_position().x, character.get_position().y))
@@ -176,10 +183,6 @@ def main():
             if pressed_key[pygame.K_d] and pressed_key[pygame.K_a]:
                 character.stop_character()
 
-            if pressed_key[pygame.K_SPACE] or pressed_key[pygame.K_w]:
-                if character.get_position().y <= (height - character.get_height() - boden):
-                    steuerung.up(pressed_key[pygame.K_LSHIFT])
-
             if pressed_key[pygame.K_LSHIFT]:
                 character.max_speed = 10
                 if character.move_velocity >= 8:
@@ -198,20 +201,19 @@ def main():
     def spawn_enemys():
         global anzahl_enemys, anzahl_enemys_counter
         create_enemy = [False, 0]
-
-        values_in_game = list(objects_ingame.values())
-        if len(values_in_game) == 1:
+        values_in_game = list(enemy_objects.values())
+        if len(values_in_game) == 0:
             anzahl_enemys += 1
             create_enemy = [True, 750 + width - 1080]
         if world_offset[0] > 0:
-            if len(values_in_game) < math.floor((world_offset[0] + 250) / 750) + 2:
+            if len(values_in_game) < math.floor((world_offset[0] + 250) / 750) + 1:
                 anzahl_enemys += 1
                 create_enemy = [True, width + width - 1080]
 
         if create_enemy[0]:
             enemys = enemy("Peter2", WIN, speed=random.randint(1, 2),
                            position=[create_enemy[1], height - 90 - boden])
-            objects_ingame[f"enemy_{str(anzahl_enemys)}"] = enemys
+            enemy_objects[f"enemy_{str(anzahl_enemys)}"] = enemys
 
     # RÄNDER INITIALISIERUNG
     rand_links = pygame.Rect(0, 0, 100, height)
@@ -254,7 +256,14 @@ def main():
     pointsbar_image = pygame.image.load(os.path.join("Assets", "GAME", "POINTS", "headcount.png"))
     pointsbar = pygame.transform.scale(pointsbar_image, (50, 40))
 
-    objects_ingame = {"boden": (pygame.Rect(0, height - lava_height, width, lava_height))}
+    schwebende_insel_image = pygame.image.load(os.path.join("Assets", "GAME", "ground2.png"))
+    schwebende_insel = pygame.transform.scale(schwebende_insel_image, (80, 20))
+    schwebende_insel_rect = pygame.Rect(width - 750, height - 100, 80, 20)
+    schwebende_insel_rect2 = pygame.Rect(width - 500, height - 200, 80, 20)
+    schwebende_insel_rect3 = pygame.Rect(width - 250, height - 300, 80, 20)
+
+    objects_ingame = {"boden": (pygame.Rect(0, height - lava_height, width, lava_height)), "boden_0": schwebende_insel_rect, "boden_1":schwebende_insel_rect2, "boden_2":schwebende_insel_rect3}
+    enemy_objects = {}
 
     clock = pygame.time.Clock()
 
@@ -263,7 +272,7 @@ def main():
                                rand_rechts=rand_rechts)
 
     # STEUERUNG INITIALISIERUNG
-    steuerung = controls(rand_links, rand_rechts, character, clock)
+    steuerung = controls(rand_links, rand_rechts, character, clock, objects_ingame)
 
     run = True
 
@@ -276,9 +285,7 @@ def main():
         left, middle, right = pygame.mouse.get_pressed()
 
         def crash_detection():  # Crash Kontrolle Methode
-            for keys, values in objects_ingame.items():
-                if values == objects_ingame["boden"]:
-                    continue
+            for keys, values in enemy_objects.items():
                 try:
                     if character.get_attack_character_rect().colliderect(values.get_enemy_rect()):
                         yield [True, values, keys]
@@ -319,10 +326,10 @@ def main():
                     world_offset[0] = 0
                     anzahl_enemys_counter = 5
                     kills_enemys = 0
-                    objects_ingame = {"boden": (pygame.Rect(0, height - lava_height, width, lava_height))}
-                    character = main_character("Franz", WIN, objects_ingame, clock, speed=3,
+                    enemy_objects = {}
+                    character = main_character("Franz", WIN, enemy_objects, clock, speed=3,
                                                rand_links=rand_links, rand_rechts=rand_rechts)
-                    steuerung = controls(rand_links, rand_rechts, character, clock)
+                    steuerung = controls(rand_links, rand_rechts, character, clock, objects_ingame)
                     character.set_walking_block(True)
                     pygame.mixer.music.set_pos(0)
             else:
@@ -351,11 +358,11 @@ def main():
                         except Exception as e:
                             print(str(e))
 
-            for name, enemy_check in objects_ingame.items():
+            for name, enemy_check in enemy_objects.items():
                 if name == "boden":
                     continue
-                if not objects_ingame[name] == "DEAD" and objects_ingame[name].health == -500:
-                    objects_ingame[name] = "DEAD"
+                if not enemy_objects[name] == "DEAD" and enemy_objects[name].health == -500:
+                    enemy_objects[name] = "DEAD"
                     anzahl_enemys_counter -= 1
 
             # enemys werden gespawnt
@@ -381,9 +388,11 @@ def main():
             rand_links = pygame.Rect(0, 0, 100, height)
             rand_rechts = pygame.Rect(width - 100, 0, 100, height)
 
-            for key, value in objects_ingame.items():
-                if key != "boden":
+            for key, value in enemy_objects.items():
+                try:
                     value.position.y = height - value.get_height() - boden
+                except Exception as e:
+                    print(e)
 
             character.rand_links = rand_links
             character.rand_rechts = rand_rechts
@@ -415,6 +424,9 @@ def main():
                         f2_clicked_character_view = True
                     else:
                         f2_clicked_character_view = False
+                if event.key == pygame.K_SPACE or event.key == pygame.K_w:
+                    if character.get_position().y <= (height - character.get_height() - boden):
+                        steuerung.up(False)
 
         if not start_screen and not left and spiel_gestartet_mit_knopf_druck and not game_over_screen:
             spiel_gestartet_mit_knopf_druck = False

@@ -87,6 +87,8 @@ class main_character:
                                "hit": 18}  # Erstellt ein Dictionary aus allen Animationen
         self.pixel_of_image = None
 
+        self.movement = 0
+
     def set_walking_block(self, block):
         self.walking_block = block
 
@@ -218,9 +220,9 @@ class main_character:
 
     def set_character_rect(self):
         if self.get_animation()[1] == "r":
-            self.character_rect = pygame.Rect(self.position.x + 62, self.position.y, 70, self.characters_height)
+            self.character_rect = pygame.Rect(self.position.x + 63, self.position.y, 45, self.characters_height)
         elif self.get_animation()[1] == "l":
-            self.character_rect = pygame.Rect(self.position.x + 58, self.position.y, 70, self.characters_height)
+            self.character_rect = pygame.Rect(self.position.x + 80, self.position.y, 45, self.characters_height)
 
     def initilise_character(self, path, direction):
         self.set_character_rect()
@@ -252,41 +254,56 @@ class main_character:
         self.speed = speed
 
     def move_character(self, direction):
+        self.movement = 0
         if direction == "right" and self.get_is_jumping():
-            self.position.x += (math.floor(self.move_velocity) + 5) * 144 // self.clock.get_fps() + 1
+            if self.velocity > 0:
+                self.movement = math.ceil((self.move_velocity * 144) / self.clock.get_fps()) + 5
+            else:
+                self.movement = math.ceil((self.move_velocity * 144) / self.clock.get_fps())
+            self.position.x += self.movement
             if self.get_animation() != ["jump", "r"]:
                 self.set_animation(["jump", "r"])
             if self.move_velocity < self.max_speed:
                 self.move_velocity += 0.05
             else:
                 self.move_velocity -= 0.05
+
         elif direction == "right" and not self.get_is_jumping():
             if self.get_animation() != ["walk", "r"]:
                 self.set_animation(["walk", "r"])
                 self.move_velocity = 0
-            self.position.x += (math.floor(self.move_velocity)) * 144 // self.clock.get_fps() + 1
+            self.movement = math.ceil((self.move_velocity * 144) / self.clock.get_fps())
+            self.position.x += self.movement
             if self.move_velocity < self.max_speed:
                 self.move_velocity += 0.05
             else:
                 self.move_velocity -= 0.05
 
         if direction == "left" and self.get_is_jumping():
-            self.position.x -= (math.floor(self.move_velocity) + 5) * 144 // self.clock.get_fps() + 1
+            if self.velocity > 0:
+                self.movement = math.ceil((self.move_velocity * 144) / self.clock.get_fps()) + 5
+            else:
+                self.movement = math.ceil((self.move_velocity * 144) / self.clock.get_fps())
+            self.position.x -= self.movement
             if self.get_animation() != ["jump", "l"]:
                 self.set_animation(["jump", "l"])
             if self.move_velocity < self.max_speed:
                 self.move_velocity += 0.05
             else:
                 self.move_velocity -= 0.05
+
         elif direction == "left" and not self.get_is_jumping():
             if self.get_animation() != ["walk", "l"]:
                 self.set_animation(["walk", "l"])
                 self.move_velocity = 0
-            self.position.x -= (math.floor(self.move_velocity)) * 144 // self.clock.get_fps() + 1
+            self.movement = math.ceil((self.move_velocity * 144) / self.clock.get_fps())
+            self.position.x -= self.movement
             if self.move_velocity < self.max_speed:
                 self.move_velocity += 0.05
             else:
                 self.move_velocity -= 0.05
+
+        return self.movement
 
     def move_character_regular(self, x, y):
         self.position.x += x
@@ -302,7 +319,7 @@ class main_character:
                 if self.position.colliderect(self.rand_rechts):
                     self.move_velocity = 0
                 else:
-                    self.position.x += self.move_velocity
+                    self.position.x += math.ceil((math.floor(self.move_velocity)) * 144 // self.clock.get_fps())
                     self.move_velocity -= 0.2
         if self.get_animation()[1] == "l":
             if self.move_velocity <= 0.2:
@@ -312,7 +329,7 @@ class main_character:
                 if self.position.colliderect(self.rand_links):
                     self.move_velocity = 0
                 else:
-                    self.position.x -= self.move_velocity
+                    self.position.x -= math.ceil((math.floor(self.move_velocity)) * 144 // self.clock.get_fps())
                     self.move_velocity -= 0.2
 
     def jump(self):
@@ -330,16 +347,23 @@ class main_character:
 
         # Change position
         self.position.y -= F
+        self.character_rect.y -= F
 
         # Change velocity
-        self.velocity -= 1
+        if self.velocity > -10:
+            self.velocity -= 1
+
+        new_foot_rect = pygame.Rect(self.get_character_rect().x, self.get_character_rect().y + 90, self.get_character_rect().width, 10)
 
         # If ground is reached, reset variables.
         for objekt_key, objekt_value in self.objects_ingame.items():
-            if objekt_key[:5] == "boden":
-                if self.get_position().colliderect(objekt_value):
+            if objekt_key[:5] == "boden" and self.velocity < 0:
+                print(new_foot_rect.colliderect(objekt_value))
+                if new_foot_rect.colliderect(objekt_value):
+
                     self.position.y = objekt_value.y - self.get_height() + 5
                     self.set_is_jumping(False)
+                    self.set_walking_block(False)
                     self.velocity = self.velocity_max
                     if self.get_animation()[1] == "r":
                         self.set_animation(["idle", "r"])
